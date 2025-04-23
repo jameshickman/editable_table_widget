@@ -1,0 +1,32 @@
+{
+  "name": "smart_table",
+  "version": "1.0.0",
+  "description": "A lightweight JavaScript library for creating editable HTML tables with inline CRUD operations",
+  "main": "js/ediable_table.js",
+  "scripts": {
+    "test": "./tests/run-tests.sh",
+    "test:chrome": "./tests/run-tests.sh --env chrome",
+    "test:firefox": "./tests/run-tests.sh --env firefox",
+    "test:single": "./tests/run-tests.sh --test",
+    "test:visual": "./tests/run-tests.sh --test tests/nightwatch/visual.test.js",
+    "test:edge": "./tests/run-tests.sh --test tests/nightwatch/edgeCase.test.js",
+    "test:unit": "./tests/run-tests.sh --test tests/nightwatch/editableTable.unit.test.js",
+    "test:basic": "./tests/run-tests.sh --test tests/nightwatch/smartTable.test.js",
+    "test:custom": "./tests/run-tests.sh --test tests/nightwatch/customCommands.test.js",
+    "serve": "http-server -p 8080"
+  },
+  "keywords": [
+    "table",
+    "crud",
+    "editable",
+    "javascript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chromedriver": "^123.0.0",
+    "geckodriver": "^4.3.0",
+    "http-server": "^14.1.1",
+    "nightwatch": "^3.5.0"
+  }
+}
