@@ -2,6 +2,8 @@
 
 A lightweight JavaScript library for creating editable HTML tables with inline CRUD (Create, Read, Update, Delete) operations.
 
+![Smart Table Screenshot](edit-table.png)
+
 (c) 2025 - James Hickman - www.rationalboxes.com
 
 ## Features
