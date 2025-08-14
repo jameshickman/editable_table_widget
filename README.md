@@ -2,6 +2,8 @@
 
 A lightweight JavaScript library for creating editable HTML tables with inline CRUD (Create, Read, Update, Delete) operations.
 
+(c) 2025 - James Hickman - www.rationalboxes.com
+
 ## Features
 
 - Create, read, update, and delete operations on table rows
@@ -116,3 +118,7 @@ See `index.html` for a complete example implementation that demonstrates all fea
 ## Styling
 
 The library comes with basic styling in `styles.css`. You can customize the appearance by modifying this file or overriding the styles in your own CSS.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
