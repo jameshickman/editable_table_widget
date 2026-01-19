@@ -12,6 +12,7 @@ class EditableTable {
     #labels;
 
     #is_new;
+    #is_saving;
 
     #cb_saved;
     #cb_deleted;
@@ -68,6 +69,7 @@ class EditableTable {
         this.#top_index = 0;
         this.#find_top_index();
         this.#is_new = false;
+        this.#is_saving = false;
     }
 
     /**
@@ -213,7 +215,12 @@ class EditableTable {
 
                 // Check if field has a plugin instance
                 if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
-                    el_cell.innerHTML = this.#fields[d_name].plugin.renderDisplay(rows[i][d_name]);
+                    try {
+                        el_cell.innerHTML = this.#fields[d_name].plugin.renderDisplay(rows[i][d_name]);
+                    } catch (error) {
+                        console.error(`Error rendering display for plugin field ${d_name}:`, error);
+                        el_cell.innerText = rows[i][d_name] || '';
+                    }
                     el_row.appendChild(el_cell);
                     continue;
                 }
@@ -285,7 +292,12 @@ class EditableTable {
 
             // Check if field has a plugin instance
             if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
-                values[d_name] = this.#fields[d_name].plugin.decodeValue(el_row.children[i]);
+                try {
+                    values[d_name] = this.#fields[d_name].plugin.decodeValue(el_row.children[i]);
+                } catch (error) {
+                    console.error(`Error decoding value for plugin field ${d_name}:`, error);
+                    values[d_name] = el_row.children[i].innerText;
+                }
                 continue;
             }
 
@@ -352,7 +364,17 @@ class EditableTable {
 
         // Check if field has a plugin instance
         if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
-            return this.#fields[d_name].plugin.createEditElement(d_name, values[idx]);
+            try {
+                return this.#fields[d_name].plugin.createEditElement(d_name, values[idx]);
+            } catch (error) {
+                console.error(`Error creating edit element for plugin field ${d_name}:`, error);
+                // Fallback to default element
+                const el_input = document.createElement('SPAN');
+                el_input.innerText = values[idx] || '';
+                el_input.id = d_name;
+                el_input.name = d_name;
+                return el_input;
+            }
         }
 
         let el_input = null;
@@ -407,8 +429,23 @@ class EditableTable {
     }
 
     #save_row() {
+        // Prevent multiple simultaneous saves
+        if (this.#is_saving) {
+            return;
+        }
+
+        this.#is_saving = true;
+
         let index = 0;
         let payload = {};
+
+        // Make sure edit form exists
+        if (!this.#el_edit_form) {
+            console.error("Edit form is not defined");
+            this.#is_saving = false;
+            return;
+        }
+
         const els_cells = this.#el_edit_form.querySelectorAll("td");
         for (let i = 0 ; i < this.#els_table_headers.length; i++) {
             const d_type = this.#els_table_headers[i].dataset['type'];
@@ -468,6 +505,7 @@ class EditableTable {
         }
 
         this.#clear();
+        this.#is_saving = false;
 
         if (this.#cb_saved) {
             const row_id = this.#cb_saved(this.#is_new, index, payload);

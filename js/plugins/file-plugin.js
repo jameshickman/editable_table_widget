@@ -1,4 +1,4 @@
-import Plugin from './plugin-base.js';
+import Plugin from '../plugin-base.js';
 
 /**
  * File upload/download plugin for EditableTable
@@ -108,31 +108,40 @@ class FilePlugin extends Plugin {
      * @returns {Object} - { display: string (HTML), value: any (data) }
      */
     saveValue(editCellElement, displayCellElement) {
-        // Get the stored value from the edit container
-        const container = editCellElement.querySelector('.file-plugin-edit-container');
-        const fileData = container ? container.dataset.fileData : null;
-        
-        if (fileData) {
-            try {
-                const parsedData = JSON.parse(fileData);
-                
-                // Update the display cell with the new file data
-                const displayHtml = this.renderDisplay(parsedData);
-                
-                return {
-                    display: displayHtml,
-                    value: parsedData
-                };
-            } catch (e) {
-                console.error('Error parsing file data:', e);
+        try {
+            // Get the stored value from the edit container
+            const container = editCellElement.querySelector('.file-plugin-edit-container');
+            const fileData = container ? container.dataset.fileData : null;
+
+            if (fileData) {
+                try {
+                    const parsedData = JSON.parse(fileData);
+
+                    // Update the display cell with the new file data
+                    const displayHtml = this.renderDisplay(parsedData);
+
+                    return {
+                        display: displayHtml,
+                        value: parsedData
+                    };
+                } catch (parseError) {
+                    console.error('Error parsing file data:', parseError);
+                }
             }
+
+            // If no new file was uploaded, return the original value
+            return {
+                display: displayCellElement.innerHTML,
+                value: this.decodeValue(displayCellElement)
+            };
+        } catch (error) {
+            console.error('Error in file plugin saveValue:', error);
+            // Return safe defaults
+            return {
+                display: '<span class="file-plugin-no-file">(No file)</span>',
+                value: null
+            };
         }
-        
-        // If no new file was uploaded, return the original value
-        return {
-            display: displayCellElement.innerHTML,
-            value: this.decodeValue(displayCellElement)
-        };
     }
 
     /**

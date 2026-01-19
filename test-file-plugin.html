@@ -48,6 +48,11 @@
             allowedTypes: ["application/pdf", "image/*", "text/plain"]
         });
 
+        // Get references to control buttons
+        const elAdd = document.getElementById('add-row');
+        const elGetData = document.getElementById('get-data');
+        const elPopulate = document.getElementById('populate');
+
         // Initialize the table with the file plugin
         const table = new EditableTable(
             document.getElementById('smart-table'),
@@ -64,6 +69,22 @@
                         plugin: filePlugin  // Register the plugin instance
                     }
                 }
+            }
+        );
+
+        // Set edit callbacks to disable/enable control buttons
+        table.set_edit_callbacks(
+            () => {
+                // Disable control buttons when editing starts
+                elAdd.disabled = true;
+                elGetData.disabled = true;
+                elPopulate.disabled = true;
+            },
+            () => {
+                // Enable control buttons when editing ends
+                elAdd.disabled = false;
+                elGetData.disabled = false;
+                elPopulate.disabled = false;
             }
         );
 

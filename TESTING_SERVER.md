@@ -38,7 +38,7 @@ cd /home/telendry/code/smart_table/test-server && node server.js
 
 The services will run on:
 - Test server (file handling): `http://localhost:3000`
-- Main application: `http://localhost:8080`
+- Main application: `http://localhost:3000`
 
 The test server will create an `uploads/` directory to store uploaded files.
 
@@ -48,7 +48,7 @@ The test server will create an `uploads/` directory to store uploaded files.
 
 Navigate to the test page in your browser:
 
-`http://localhost:8080/test-file-plugin.html`
+`http://localhost:3000/test-file-plugin.html`
 
 ### 2. Verify Plugin Initialization
 

@@ -25,7 +25,7 @@
     
     <button id="add-row">Add Row</button>
     <button id="get-data">Get Data</button>
-    
+
     <div id="output"></div>
 
     <script type="module">
@@ -43,6 +43,10 @@
 
         console.log('FilePlugin created:', filePlugin);
 
+        // Get references to control buttons
+        const elAdd = document.getElementById('add-row');
+        const elGet = document.getElementById('get-data');
+
         // Initialize the table with the file plugin
         const table = new EditableTable(
             document.getElementById('test-table'),
@@ -59,6 +63,20 @@
                         plugin: filePlugin  // Register the plugin instance
                     }
                 }
+            }
+        );
+
+        // Set edit callbacks to disable/enable control buttons
+        table.set_edit_callbacks(
+            () => {
+                // Disable control buttons when editing starts
+                elAdd.disabled = true;
+                elGet.disabled = true;
+            },
+            () => {
+                // Enable control buttons when editing ends
+                elAdd.disabled = false;
+                elGet.disabled = false;
             }
         );
 
@@ -81,19 +99,19 @@
             const headers = document.querySelectorAll('#test-table thead th');
             let foundFileColumn = false;
             for (let i = 0; i < headers.length; i++) {
-                if (headers[i].getAttribute('data-type') === 'file' && 
+                if (headers[i].getAttribute('data-type') === 'file' &&
                     headers[i].getAttribute('data-name') === 'document') {
                     foundFileColumn = true;
                     break;
                 }
             }
-            
+
             if (foundFileColumn) {
                 document.getElementById('output').innerHTML += '<p style="color: green;">✓ File column found in table header</p>';
             } else {
                 document.getElementById('output').innerHTML += '<p style="color: red;">✗ File column NOT found in table header</p>';
             }
-            
+
             // Test that plugin configuration is accessible
             if (filePlugin.config && filePlugin.config.uploadUrl) {
                 document.getElementById('output').innerHTML += '<p style="color: green;">✓ Plugin configuration is accessible</p>';
