@@ -14,42 +14,41 @@ This document provides step-by-step instructions to test the Smart Table file pl
 First, install the dependencies for the test server:
 
 ```bash
-cd test-server
-npm install
+cd /home/telendry/code/smart_table/test-server && npm install
 ```
 
-### 2. Start the Test Server
+### 2. Start the Services
 
-Open a terminal and navigate to the project root directory, then start the test server:
+From the project root directory, you need to start both servers:
 
+**Terminal 1 - Start the test server (for file uploads/downloads):**
 ```bash
-npm run test-server
+cd /home/telendry/code/smart_table && npm run test-server
 ```
 
-This will start the server on `http://localhost:3000` with the following endpoints:
-- Upload endpoint: `POST /api/upload`
-- Download endpoint: `GET /api/download/:filename`
-
-The server will create an `uploads/` directory to store uploaded files.
-
-### 3. Start the Main Application Server
-
-In a separate terminal, start the main application server:
-
+**Terminal 2 - Start the main application server:**
 ```bash
-npm run serve
+cd /home/telendry/code/smart_table && npm run serve
 ```
 
-This will start a server on `http://localhost:8080`.
+Alternatively, you can start the test server directly:
+```bash
+cd /home/telendry/code/smart_table/test-server && node server.js
+```
+
+The services will run on:
+- Test server (file handling): `http://localhost:3000`
+- Main application: `http://localhost:8080`
+
+The test server will create an `uploads/` directory to store uploaded files.
 
 ## Testing Steps
 
 ### 1. Open the Test Page
 
 Navigate to the test page in your browser:
-```
-http://localhost:8080/test-file-plugin.html
-```
+
+`http://localhost:8080/test-file-plugin.html`
 
 ### 2. Verify Plugin Initialization
 
@@ -110,9 +109,7 @@ http://localhost:8080/test-file-plugin.html
 
 You can also test the basic plugin functionality using:
 
-```
-http://localhost:8080/test-plugin-system.html
-```
+`http://localhost:8080/test-plugin-system.html`
 
 This page provides a simpler test of the plugin system integration.
 
