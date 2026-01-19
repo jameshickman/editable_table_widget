@@ -13,7 +13,9 @@
     "test:unit": "./tests/run-tests.sh --test tests/nightwatch/editableTable.unit.test.js",
     "test:basic": "./tests/run-tests.sh --test tests/nightwatch/smartTable.test.js",
     "test:custom": "./tests/run-tests.sh --test tests/nightwatch/customCommands.test.js",
-    "serve": "http-server -p 8080"
+    "test:file": "./tests/run-tests.sh --test tests/nightwatch/filePlugin.test.js",
+    "serve": "http-server -p 8080",
+    "test-server": "cd test-server && node server.js"
   },
   "keywords": [
     "table",

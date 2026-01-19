@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plugin System Test</title>
+    <script src="./js/ediable_table.js" type="module"></script>
+    <script src="./js/plugins/file-plugin.js" type="module"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/file-plugin.css" />
+</head>
+<body>
+    <h1>Plugin System Test</h1>
+    <p>This page tests if the plugin system is working correctly.</p>
+    
+    <table width="100%" id="test-table">
+        <thead>
+            <tr>
+                <th data-type="index" data-name="id">ID</th>
+                <th data-type="text" data-name="name">Name</th>
+                <th data-type="file" data-name="document">Document</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    
+    <button id="add-row">Add Row</button>
+    <button id="get-data">Get Data</button>
+    
+    <div id="output"></div>
+
+    <script type="module">
+        import EditableTable from './js/ediable_table.js';
+        import FilePlugin from './js/plugins/file-plugin.js';
+
+        console.log('Testing plugin system...');
+
+        // Create a file plugin instance with a mock URL for testing
+        const filePlugin = new FilePlugin({
+            uploadUrl: "http://localhost:3000/api/upload",
+            maxFileSize: 5242880, // 5MB
+            allowedTypes: ["application/pdf", "image/*"]
+        });
+
+        console.log('FilePlugin created:', filePlugin);
+
+        // Initialize the table with the file plugin
+        const table = new EditableTable(
+            document.getElementById('test-table'),
+            (is_new, index, data) => {
+                console.log('Row saved:', { is_new, index, data });
+                document.getElementById('output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            },
+            (index) => {
+                console.log('Row deleted:', index);
+            },
+            {
+                "fields": {
+                    "document": {
+                        plugin: filePlugin  // Register the plugin instance
+                    }
+                }
+            }
+        );
+
+        console.log('EditableTable initialized with plugin');
+
+        // Add row button
+        document.getElementById('add-row').addEventListener('click', () => {
+            table.new_row();
+        });
+
+        // Get data button
+        document.getElementById('get-data').addEventListener('click', () => {
+            const data = table.get_values();
+            console.log('Table data:', data);
+            document.getElementById('output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        });
+
+        // Test that the plugin is properly integrated
+        setTimeout(() => {
+            const headers = document.querySelectorAll('#test-table thead th');
+            let foundFileColumn = false;
+            for (let i = 0; i < headers.length; i++) {
+                if (headers[i].getAttribute('data-type') === 'file' && 
+                    headers[i].getAttribute('data-name') === 'document') {
+                    foundFileColumn = true;
+                    break;
+                }
+            }
+            
+            if (foundFileColumn) {
+                document.getElementById('output').innerHTML += '<p style="color: green;">✓ File column found in table header</p>';
+            } else {
+                document.getElementById('output').innerHTML += '<p style="color: red;">✗ File column NOT found in table header</p>';
+            }
+            
+            // Test that plugin configuration is accessible
+            if (filePlugin.config && filePlugin.config.uploadUrl) {
+                document.getElementById('output').innerHTML += '<p style="color: green;">✓ Plugin configuration is accessible</p>';
+            } else {
+                document.getElementById('output').innerHTML += '<p style="color: red;">✗ Plugin configuration is NOT accessible</p>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

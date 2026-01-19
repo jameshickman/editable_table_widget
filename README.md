@@ -121,6 +121,27 @@ See `index.html` for a complete example implementation that demonstrates all fea
 
 The library comes with basic styling in `styles.css`. You can customize the appearance by modifying this file or overriding the styles in your own CSS.
 
+## Plugin System
+
+Smart Table supports custom field types through a plugin system. Plugins allow you to extend the functionality of table fields beyond the built-in types (int, float, bool, text, select, etc.).
+
+### Creating Plugins
+
+To create a custom plugin, extend the `Plugin` base class and implement the required methods:
+
+- `createEditElement(fieldName, currentValue)` - Create the form element for editing mode
+- `decodeValue(cellElement)` - Extract the data value from a display cell
+- `saveValue(editCellElement, displayCellElement)` - Save the edited value back to display mode
+- `renderDisplay(value)` - Render the display mode HTML for a value
+
+For detailed instructions, see the [Plugin Development Guide](docs/PLUGIN_DEVELOPMENT.md).
+
+### File Plugin
+
+The File Plugin enables file upload and download functionality. Users can upload files to a server and store references to them in table cells, which are displayed as downloadable links.
+
+For detailed usage instructions, see the [File Plugin Documentation](docs/FILE_PLUGIN.md).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

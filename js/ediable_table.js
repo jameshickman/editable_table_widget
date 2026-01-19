@@ -1,3 +1,5 @@
+import Plugin from './plugin-base.js';
+
 class EditableTable {
     #top_index;
     #index_column;
@@ -208,6 +210,14 @@ class EditableTable {
                 const el_cell = document.createElement('TD');
                 const d_type = this.#els_table_headers[j].dataset['type'];
                 const d_name = this.#els_table_headers[j].dataset['name'];
+
+                // Check if field has a plugin instance
+                if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
+                    el_cell.innerHTML = this.#fields[d_name].plugin.renderDisplay(rows[i][d_name]);
+                    el_row.appendChild(el_cell);
+                    continue;
+                }
+
                 switch(d_type) {
                     case 'select':
                         el_cell.innerText = this.#fields[d_name].options[rows[i][d_name]];
@@ -221,7 +231,7 @@ class EditableTable {
                         }
                         break;
                     default:
-                        el_cell.innerText = rows[i][d_name];    
+                        el_cell.innerText = rows[i][d_name];
                 }
                 el_row.appendChild(el_cell);
             }
@@ -272,6 +282,13 @@ class EditableTable {
         for (let i = 0; i < this.#els_table_headers.length; i++) {
             const d_type = this.#els_table_headers[i].dataset['type'];
             const d_name = this.#els_table_headers[i].dataset['name'];
+
+            // Check if field has a plugin instance
+            if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
+                values[d_name] = this.#fields[d_name].plugin.decodeValue(el_row.children[i]);
+                continue;
+            }
+
             switch (d_type) {
                 case 'index':
                 case 'int':
@@ -332,6 +349,12 @@ class EditableTable {
     #build_form_element(idx, values) {
         const d_type = this.#els_table_headers[idx].dataset['type'];
         const d_name = this.#els_table_headers[idx].dataset['name'];
+
+        // Check if field has a plugin instance
+        if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
+            return this.#fields[d_name].plugin.createEditElement(d_name, values[idx]);
+        }
+
         let el_input = null;
         switch (d_type) {
             case 'int':
@@ -390,6 +413,18 @@ class EditableTable {
         for (let i = 0 ; i < this.#els_table_headers.length; i++) {
             const d_type = this.#els_table_headers[i].dataset['type'];
             const d_name = this.#els_table_headers[i].dataset['name'];
+
+            // Check if field has a plugin instance
+            if (this.#fields[d_name] && this.#fields[d_name].plugin instanceof Plugin) {
+                const result = this.#fields[d_name].plugin.saveValue(
+                    this.#el_edit_form.children[i],
+                    this.#el_active_row.children[i]
+                );
+                this.#el_active_row.children[i].innerHTML = result.display;
+                payload[d_name] = result.value;
+                continue;
+            }
+
             switch(d_type) {
                 case 'int':
                 case 'float':
@@ -622,6 +657,18 @@ class EditableTable {
         el_popup.appendChild(el_button_container);
         el_dialog.appendChild(el_popup);
         document.body.appendChild(el_dialog);
+    }
+
+    /**
+     * Destroy the table and cleanup all plugins
+     */
+    destroy() {
+        // Cleanup all plugins
+        for (const fieldName in this.#fields) {
+            if (this.#fields[fieldName].plugin instanceof Plugin) {
+                this.#fields[fieldName].plugin.destroy();
+            }
+        }
     }
 }
 

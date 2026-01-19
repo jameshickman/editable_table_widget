@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Table with File Plugin</title>
+    <script src="./js/ediable_table.js" type="module"></script>
+    <script src="./js/plugins/file-plugin.js" type="module"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/file-plugin.css" />
+</head>
+<body>
+    <h1>Smart Table with File Plugin Demo</h1>
+    <p>This demo shows how to use the file plugin for uploading and downloading files in Smart Table.</p>
+    
+    <table width="100%" id="smart-table">
+        <thead>
+            <tr>
+                <th data-type="index" data-name="id">ID</th>
+                <th data-type="text" data-name="name">Name</th>
+                <th data-type="file" data-name="document">Document</th>
+                <th data-type="text" data-name="notes">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Sample Document</td>
+                <td><a href="#" download>sample.pdf</a></td>
+                <td>Initial sample document</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="controls">
+        <button id="add-row">Add Row</button>
+        <button id="get-data">Get Table Data</button>
+        <button id="populate">Populate with Sample Data</button>
+        <div class="output"></div>
+    </div>
+
+    <script type="module">
+        import EditableTable from './js/ediable_table.js';
+        import FilePlugin from './js/plugins/file-plugin.js';
+
+        // Create a file plugin instance with configuration
+        const filePlugin = new FilePlugin({
+            uploadUrl: "http://localhost:3000/api/upload",
+            maxFileSize: 5242880, // 5MB
+            allowedTypes: ["application/pdf", "image/*", "text/plain"]
+        });
+
+        // Initialize the table with the file plugin
+        const table = new EditableTable(
+            document.getElementById('smart-table'),
+            (is_new, index, data) => {
+                console.log('Row saved:', { is_new, index, data });
+                document.querySelector('.output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            },
+            (index) => {
+                console.log('Row deleted:', index);
+            },
+            {
+                "fields": {
+                    "document": {
+                        plugin: filePlugin  // Register the plugin instance
+                    }
+                }
+            }
+        );
+
+        // Add row button
+        document.getElementById('add-row').addEventListener('click', () => {
+            table.new_row();
+        });
+
+        // Get data button
+        document.getElementById('get-data').addEventListener('click', () => {
+            const data = table.get_values();
+            console.log('Table data:', data);
+            document.querySelector('.output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        });
+
+        // Populate button
+        document.getElementById('populate').addEventListener('click', () => {
+            const sampleData = [
+                {
+                    id: 1,
+                    name: "Project Proposal",
+                    document: {
+                        url: "/api/download/sample1.pdf",
+                        filename: "proposal.pdf"
+                    },
+                    notes: "Q3 project proposal"
+                },
+                {
+                    id: 2,
+                    name: "Financial Report",
+                    document: {
+                        url: "/api/download/sample2.xlsx",
+                        filename: "report.xlsx"
+                    },
+                    notes: "Annual financial report"
+                }
+            ];
+            table.set_rows(sampleData);
+        });
+    </script>
+</body>
+</html>
