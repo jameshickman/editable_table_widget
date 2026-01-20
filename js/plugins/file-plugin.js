@@ -153,23 +153,36 @@ class FilePlugin extends Plugin {
         if (!value) {
             return '<span class="file-plugin-no-file">(No file)</span>';
         }
-        
+
         if (typeof value === 'object') {
             const downloadUrl = value[this.config.downloadUrlField];
             const filename = value[this.config.filenameField];
-            
+
             if (downloadUrl && filename) {
                 // Store the value as JSON in a data attribute for easy retrieval
                 const valueJson = JSON.stringify(value);
-                return `<a href="${downloadUrl}" download="${filename}" class="file-plugin-download-link">${filename}</a>`;
+
+                // If JWT is configured, we need to handle the download with authentication
+                if (this.config.jwt) {
+                    // Create a link that triggers authenticated download
+                    return `<a href="#" data-download-url="${downloadUrl}" data-filename="${filename}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${filename}</a>`;
+                } else {
+                    // Standard download link
+                    return `<a href="${downloadUrl}" download="${filename}" class="file-plugin-download-link">${filename}</a>`;
+                }
             }
         }
-        
+
         // Handle string values (fallback)
         if (typeof value === 'string' && value) {
-            return `<a href="${value}" download class="file-plugin-download-link">${value}</a>`;
+            if (this.config.jwt) {
+                // For string URLs with JWT, also use authenticated download
+                return `<a href="#" data-download-url="${value}" data-filename="${value.split('/').pop()}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${value}</a>`;
+            } else {
+                return `<a href="${value}" download class="file-plugin-download-link">${value}</a>`;
+            }
         }
-        
+
         return '<span class="file-plugin-no-file">(No file)</span>';
     }
 
@@ -417,11 +430,11 @@ class FilePlugin extends Plugin {
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    
+
                     // Extract the download URL and filename from response
                     const downloadUrl = response[this.config.downloadUrlField];
                     const filename = response[this.config.filenameField] || file.name;
-                    
+
                     if (!downloadUrl) {
                         throw new Error(`Response missing required field: ${this.config.downloadUrlField}`);
                     }
@@ -434,17 +447,17 @@ class FilePlugin extends Plugin {
 
                     // Update the container with the new file data
                     container.dataset.fileData = JSON.stringify(fileData);
-                    
+
                     // Update the button text and add filename display
                     const button = container.querySelector('.file-plugin-button');
                     button.textContent = 'Change File...';
-                    
+
                     // Remove existing filename span if present
                     const existingFilename = container.querySelector('.file-plugin-filename');
                     if (existingFilename) {
                         existingFilename.remove();
                     }
-                    
+
                     // Add new filename span
                     const filenameSpan = document.createElement('span');
                     filenameSpan.className = 'file-plugin-filename';
@@ -478,7 +491,7 @@ class FilePlugin extends Plugin {
 
         // Set up request
         xhr.open('POST', this.config.uploadUrl);
-        
+
         // Add JWT header if provided
         if (this.config.jwt) {
             xhr.setRequestHeader('Authorization', `Bearer ${this.config.jwt}`);
