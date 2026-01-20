@@ -46,7 +46,8 @@
             uploadUrl: "http://localhost:3000/api/upload",
             jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", // Example JWT
             maxFileSize: 5242880, // 5MB
-            allowedTypes: ["application/pdf", "image/*", "text/plain"]
+            allowedTypes: ["application/pdf", "image/*", "text/plain"],
+            displayNameField: "displayName" // Enable display name functionality
         });
 
         // Get references to control buttons

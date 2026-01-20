@@ -25,7 +25,8 @@ class FilePlugin extends Plugin {
             maxFileSize: config.maxFileSize || 10485760, // 10MB default
             allowedTypes: config.allowedTypes || null, // Allow all types by default
             downloadUrlField: config.downloadUrlField || 'url',
-            filenameField: config.filenameField || 'filename'
+            filenameField: config.filenameField || 'filename',
+            displayNameField: config.displayNameField || null // Optional field for display name
         };
 
         if (!this.config.uploadUrl) {
@@ -55,6 +56,7 @@ class FilePlugin extends Plugin {
                 const jwt = event.target.getAttribute('data-jwt');
 
                 if (downloadUrl && filename && jwt) {
+                    // Use the filename for the actual download, not the display name
                     FilePlugin.performAuthenticatedDownloadStatic(downloadUrl, filename, jwt);
                 }
             }
@@ -165,21 +167,38 @@ class FilePlugin extends Plugin {
                 return null;
             }
         }
-        
+
         // Fallback: parse from HTML content
         const linkElement = cellElement.querySelector('a');
         if (linkElement) {
-            const filename = linkElement.textContent.trim();
+            // Get the physical filename from data attribute, not from text content
+            let filename = linkElement.getAttribute('data-filename');
+            if (!filename) {
+                // Fallback to href-based extraction if data-filename not available
+                const href = linkElement.getAttribute('href');
+                filename = href ? href.split('/').pop() : linkElement.textContent.trim();
+            }
+
             const downloadUrl = linkElement.getAttribute('href');
-            
+
+            // Check if there's a display name in the data attribute
+            const displayName = linkElement.getAttribute('data-display-name');
+
             if (filename && downloadUrl) {
-                return {
+                const result = {
                     [this.config.downloadUrlField]: downloadUrl,
-                    [this.config.filenameField]: filename
+                    [this.config.filenameField]: filename  // Physical filename
                 };
+
+                // Add display name to result if it exists and displayNameField is configured
+                if (displayName && this.config.displayNameField) {
+                    result[this.config.displayNameField] = displayName;
+                }
+
+                return result;
             }
         }
-        
+
         return null;
     }
 
@@ -241,27 +260,32 @@ class FilePlugin extends Plugin {
             const filename = value[this.config.filenameField];
 
             if (downloadUrl && filename) {
-                // Store the value as JSON in a data attribute for easy retrieval
-                const valueJson = JSON.stringify(value);
+                // Check if there's a display name to use instead of the physical filename
+                let displayText = filename; // Default to physical filename
+                if (this.config.displayNameField && value[this.config.displayNameField]) {
+                    displayText = value[this.config.displayNameField];
+                }
 
                 // If JWT is configured, we need to handle the download with authentication
                 if (this.config.jwt) {
                     // Create a link that triggers authenticated download
-                    return `<a href="#" data-download-url="${downloadUrl}" data-filename="${filename}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${filename}</a>`;
+                    // Use physical filename for the download operation, display name for visible text
+                    return `<a href="#" data-download-url="${downloadUrl}" data-filename="${filename}" data-display-name="${displayText}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${displayText}</a>`;
                 } else {
-                    // Standard download link
-                    return `<a href="${downloadUrl}" download="${filename}" class="file-plugin-download-link">${filename}</a>`;
+                    // Standard download link - use display name in the visible text but physical name for download
+                    return `<a href="${downloadUrl}" download="${filename}" class="file-plugin-download-link">${displayText}</a>`;
                 }
             }
         }
 
         // Handle string values (fallback)
         if (typeof value === 'string' && value) {
+            const fileName = value.split('/').pop();
             if (this.config.jwt) {
                 // For string URLs with JWT, also use authenticated download
-                return `<a href="#" data-download-url="${value}" data-filename="${value.split('/').pop()}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${value}</a>`;
+                return `<a href="#" data-download-url="${value}" data-filename="${fileName}" data-display-name="${fileName}" data-jwt="${this.config.jwt}" class="file-plugin-download-link authenticated-download">${fileName}</a>`;
             } else {
-                return `<a href="${value}" download class="file-plugin-download-link">${value}</a>`;
+                return `<a href="${value}" download class="file-plugin-download-link">${fileName}</a>`;
             }
         }
 
@@ -319,6 +343,29 @@ class FilePlugin extends Plugin {
             padding: 8px;
         `;
         modal.appendChild(fileInput);
+
+        // Create display name input (only if displayNameField is configured)
+        let displayNameInput = null;
+        if (this.config.displayNameField) {
+            const displayNameLabel = document.createElement('label');
+            displayNameLabel.textContent = 'Display Name:';
+            displayNameLabel.style.cssText = `
+                display: block;
+                margin: 10px 0 5px 0;
+                font-weight: bold;
+            `;
+            modal.appendChild(displayNameLabel);
+
+            displayNameInput = document.createElement('input');
+            displayNameInput.type = 'text';
+            displayNameInput.placeholder = 'Enter display name for the file';
+            displayNameInput.style.cssText = `
+                width: 100%;
+                margin-bottom: 15px;
+                padding: 8px;
+            `;
+            modal.appendChild(displayNameInput);
+        }
 
         // Create progress container (initially hidden)
         const progressContainer = document.createElement('div');
@@ -452,8 +499,13 @@ class FilePlugin extends Plugin {
                 }
             }
 
-            // Perform upload
-            this.performUpload(selectedFile, progressContainer, progressBarFill, progressText, errorContainer, container, backdrop);
+            // Perform upload - pass the display name if available
+            let displayName = null;
+            if (displayNameInput) {
+                displayName = displayNameInput.value.trim() || null;
+            }
+
+            this.performUpload(selectedFile, progressContainer, progressBarFill, progressText, errorContainer, container, backdrop, displayName);
         });
 
         // Add to document
@@ -488,8 +540,9 @@ class FilePlugin extends Plugin {
      * @param {HTMLElement} errorContainer - The error container
      * @param {HTMLElement} container - The container element
      * @param {HTMLElement} backdrop - The modal backdrop
+     * @param {string|null} displayName - Optional display name for the file
      */
-    performUpload(file, progressContainer, progressBarFill, progressText, errorContainer, container, backdrop) {
+    performUpload(file, progressContainer, progressBarFill, progressText, errorContainer, container, backdrop, displayName = null) {
         // Show progress container
         progressContainer.style.display = 'block';
         this.hideError(errorContainer);
@@ -515,22 +568,27 @@ class FilePlugin extends Plugin {
 
                     // Extract the download URL and filename from response
                     const downloadUrl = response[this.config.downloadUrlField];
-                    const filename = response[this.config.filenameField] || file.name;
+                    const filename = response[this.config.filenameField] || file.name; // Always use physical filename
 
                     if (!downloadUrl) {
                         throw new Error(`Response missing required field: ${this.config.downloadUrlField}`);
                     }
 
-                    // Create the file data object
+                    // Create the file data object - filename field always contains physical filename
                     const fileData = {
                         [this.config.downloadUrlField]: downloadUrl,
-                        [this.config.filenameField]: filename
+                        [this.config.filenameField]: filename  // Physical filename goes here
                     };
+
+                    // Add display name to file data if configured and provided
+                    if (this.config.displayNameField && displayName) {
+                        fileData[this.config.displayNameField] = displayName;
+                    }
 
                     // Update the container with the new file data
                     container.dataset.fileData = JSON.stringify(fileData);
 
-                    // Update the button text and add filename display
+                    // Update the button text and add filename/display name display
                     const button = container.querySelector('.file-plugin-button');
                     button.textContent = 'Change File...';
 
@@ -540,10 +598,13 @@ class FilePlugin extends Plugin {
                         existingFilename.remove();
                     }
 
-                    // Add new filename span
+                    // Determine what to display as the filename (display name if available, otherwise physical filename)
+                    const displayText = (this.config.displayNameField && displayName) ? displayName : filename;
+
+                    // Add new filename span with display name (but preserve physical filename for actual operations)
                     const filenameSpan = document.createElement('span');
                     filenameSpan.className = 'file-plugin-filename';
-                    filenameSpan.textContent = ` ${filename}`;
+                    filenameSpan.textContent = ` ${displayText}`;
                     container.appendChild(filenameSpan);
 
                     // Close the modal

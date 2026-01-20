@@ -37,6 +37,16 @@ The File Plugin accepts the following configuration options:
 | `allowedTypes` | Array | No | null | Allowed MIME types (null allows all) |
 | `downloadUrlField` | String | No | "url" | Response field containing download URL |
 | `filenameField` | String | No | "filename" | Response field containing filename |
+| `displayNameField` | String | No | null | Optional field name for display name (defaults to physical filename if not provided) |
+
+## Display Name Support
+
+The plugin supports optional display names for files:
+
+- When `displayNameField` is configured, an input field appears in the upload dialog
+- Users can enter a custom display name for the file
+- If no display name is provided, the physical filename is used
+- The display name is shown in the table cell, but the physical filename is used for download operations
 
 ## Authentication
 
