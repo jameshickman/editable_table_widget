@@ -32,11 +32,24 @@ The File Plugin accepts the following configuration options:
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `uploadUrl` | String | Yes | - | URL endpoint for file uploads |
-| `jwt` | String | No | null | JWT token for authentication |
+| `jwt` | String | No | null | JWT token for authentication (used for both upload and download) |
 | `maxFileSize` | Number | No | 10485760 | Maximum file size in bytes (10MB default) |
 | `allowedTypes` | Array | No | null | Allowed MIME types (null allows all) |
 | `downloadUrlField` | String | No | "url" | Response field containing download URL |
 | `filenameField` | String | No | "filename" | Response field containing filename |
+
+## Authentication
+
+The plugin supports JWT authentication for both upload and download operations:
+
+### Upload Authentication
+- When a `jwt` is provided in the configuration, it's sent in the `Authorization: Bearer {token}` header for upload requests
+- The server can validate the JWT to authorize the upload
+
+### Download Authentication
+- When a `jwt` is provided, download links are converted to authenticated downloads
+- Clicking a download link triggers an authenticated request with the JWT in the `Authorization: Bearer {token}` header
+- This allows the server to validate access before serving the file
 
 ## Usage
 
