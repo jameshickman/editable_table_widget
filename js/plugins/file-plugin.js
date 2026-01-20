@@ -5,6 +5,9 @@ import Plugin from '../plugin-base.js';
  * Allows users to upload files and display them as downloadable links
  */
 class FilePlugin extends Plugin {
+    // Static property to track if the global event listener has been set up
+    static #isGlobalListenerSetUp = false;
+    static #jwtAuthenticators = new Map(); // Store authenticators by table ID or other identifier
     /**
      * @param {Object} config - Plugin configuration
      * @param {string} config.uploadUrl - Required: Upload endpoint URL
@@ -28,6 +31,85 @@ class FilePlugin extends Plugin {
         if (!this.config.uploadUrl) {
             throw new Error('FilePlugin requires uploadUrl configuration');
         }
+
+        // Set up global event listener if not already done
+        if (this.config.jwt && !FilePlugin.#isGlobalListenerSetUp) {
+            this.setupGlobalAuthenticatedDownloadListener();
+        }
+    }
+
+    /**
+     * Set up the global event listener for authenticated downloads
+     */
+    setupGlobalAuthenticatedDownloadListener() {
+        if (FilePlugin.#isGlobalListenerSetUp) {
+            return; // Already set up
+        }
+
+        // Add event listener for authenticated downloads
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('authenticated-download')) {
+                event.preventDefault();
+                const downloadUrl = event.target.getAttribute('data-download-url');
+                const filename = event.target.getAttribute('data-filename');
+                const jwt = event.target.getAttribute('data-jwt');
+
+                if (downloadUrl && filename && jwt) {
+                    FilePlugin.performAuthenticatedDownloadStatic(downloadUrl, filename, jwt);
+                }
+            }
+        });
+
+        FilePlugin.#isGlobalListenerSetUp = true;
+    }
+
+    /**
+     * Static method to perform an authenticated file download
+     * @param {string} downloadUrl - The URL to download from
+     * @param {string} filename - The filename to save as
+     * @param {string} jwt - The JWT token for authentication
+     */
+    static performAuthenticatedDownloadStatic(downloadUrl, filename, jwt) {
+        const xhr = new XMLHttpRequest();
+
+        xhr.responseType = 'blob'; // Important for file downloads
+
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Create a blob from the response
+                const blob = xhr.response;
+
+                // Create a temporary link to trigger the download
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                link.style.display = 'none';
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clean up the object URL
+                window.URL.revokeObjectURL(link.href);
+            } else {
+                console.error(`Download failed with status ${xhr.status}`);
+                alert(`Download failed: ${xhr.status}`);
+            }
+        });
+
+        xhr.addEventListener('error', () => {
+            console.error('Network error occurred during download.');
+            alert('Network error occurred during download.');
+        });
+
+        // Set up request
+        xhr.open('GET', downloadUrl);
+
+        // Add JWT header for authentication
+        xhr.setRequestHeader('Authorization', `Bearer ${jwt}`);
+
+        // Send the request
+        xhr.send();
     }
 
     /**
@@ -508,78 +590,6 @@ class FilePlugin extends Plugin {
         // Override if cleanup is needed
     }
 
-    /**
-     * Set up event listeners for authenticated downloads
-     * This should be called after the table is rendered
-     */
-    setupAuthenticatedDownloads() {
-        // This method would typically be called by the table after rendering
-        // For now, we'll rely on event delegation at the document level
-        if (this.config.jwt) {
-            // Add event listener for authenticated downloads
-            document.addEventListener('click', (event) => {
-                if (event.target.classList.contains('authenticated-download')) {
-                    event.preventDefault();
-                    const downloadUrl = event.target.getAttribute('data-download-url');
-                    const filename = event.target.getAttribute('data-filename');
-                    const jwt = event.target.getAttribute('data-jwt');
-
-                    if (downloadUrl && filename) {
-                        this.performAuthenticatedDownload(downloadUrl, filename, jwt);
-                    }
-                }
-            });
-        }
-    }
-
-    /**
-     * Perform an authenticated file download using the JWT
-     * @param {string} downloadUrl - The URL to download from
-     * @param {string} filename - The filename to save as
-     * @param {string} jwt - The JWT token for authentication
-     */
-    performAuthenticatedDownload(downloadUrl, filename, jwt) {
-        const xhr = new XMLHttpRequest();
-
-        xhr.responseType = 'blob'; // Important for file downloads
-
-        xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                // Create a blob from the response
-                const blob = xhr.response;
-
-                // Create a temporary link to trigger the download
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = filename;
-                link.style.display = 'none';
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                // Clean up the object URL
-                window.URL.revokeObjectURL(link.href);
-            } else {
-                console.error(`Download failed with status ${xhr.status}`);
-                alert(`Download failed: ${xhr.status}`);
-            }
-        });
-
-        xhr.addEventListener('error', () => {
-            console.error('Network error occurred during download.');
-            alert('Network error occurred during download.');
-        });
-
-        // Set up request
-        xhr.open('GET', downloadUrl);
-
-        // Add JWT header for authentication
-        xhr.setRequestHeader('Authorization', `Bearer ${jwt}`);
-
-        // Send the request
-        xhr.send();
-    }
 }
 
 export default FilePlugin;
