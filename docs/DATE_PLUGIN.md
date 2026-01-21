@@ -91,9 +91,22 @@ Mark columns that should use the date plugin with `data-type="date"`:
 const advancedDatePlugin = new DatePlugin({
     minDate: '2023-01-01',
     maxDate: '2025-12-31',
-    includeTime: true  // Use datetime-local for date and time
+    includeTime: true,  // Use datetime-local for date and time
+    displayFormat: 'MM/DD/YYYY'  // Custom display format
 });
 ```
+
+### Custom Display Formats
+
+The `displayFormat` option allows you to customize how dates appear in the table:
+
+- `'MM/DD/YYYY'` → 12/25/2023
+- `'DD/MM/YYYY'` → 25/12/2023
+- `'YYYY-MM-DD'` → 2023-12-25
+- `'DD-MM-YYYY'` → 25-12-2023
+- `'MM.DD.YYYY'` → 12.25.2023
+
+The internal storage format remains unchanged (ISO format), but the display format can be customized as needed.
 
 ## Data Format
 
