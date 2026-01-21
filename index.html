@@ -4,6 +4,29 @@
         <title>Smart Table Widget</title>
         <script src="./js/ediable_table.js" type="module"></script>
         <link rel="stylesheet" href="css/styles.css" />
+        <style>
+            .plugin-links {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f9f9f9;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+            .plugin-links h3 {
+                margin-top: 0;
+                color: #333;
+            }
+
+            .plugin-links ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+
+            .plugin-links li {
+                margin: 5px 0;
+            }
+        </style>
     </head>
     <body>
         <h1>Test of Simple table inline CRUD operations</h1>
@@ -46,6 +69,14 @@
             <button id="populate">Set data in table</button>
             <div class="output"></div>
         </div>
+        <div class="plugin-links">
+            <h3>Plugin Demos:</h3>
+            <ul>
+                <li><a href="test-file-plugin.html">File Plugin Demo</a> - Demonstrates file upload/download functionality</li>
+                <li><a href="test-date-plugin.html">Date Plugin Demo</a> - Demonstrates date input with custom formatting</li>
+            </ul>
+        </div>
+
         <script type="module">
             import EditableTable from './js/ediable_table.js'
 
