@@ -53,13 +53,15 @@
         // Create date plugin instances with configuration
         const datePlugin = new DatePlugin({
             minDate: '1900-01-01',
-            maxDate: '2030-12-31'
+            maxDate: '2030-12-31',
+            displayFormat: 'MM/DD/YYYY'  // Custom display format
         });
 
         const dateTimePlugin = new DatePlugin({
             minDate: '2023-01-01',
             maxDate: '2030-12-31',
-            includeTime: true
+            includeTime: true,
+            displayFormat: 'DD-MM-YYYY HH:mm'  // Custom display format with time
         });
 
         // Get references to control buttons

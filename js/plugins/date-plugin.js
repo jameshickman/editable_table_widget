@@ -206,7 +206,7 @@ class DatePlugin extends Plugin {
             minutes = date.getMinutes();
         }
 
-        // Replace pattern placeholders with actual values
+        // Replace date pattern placeholders with actual values
         let formatted = pattern
             .replace(/YYYY/g, year.toString())
             .replace(/YY/g, year.toString().slice(-2))
@@ -215,8 +215,13 @@ class DatePlugin extends Plugin {
             .replace(/DD/g, day.toString().padStart(2, '0'))
             .replace(/D/g, day.toString());
 
+        // Replace time pattern placeholders if includeTime is true
         if (includeTime) {
-            formatted += ` ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            formatted = formatted
+                .replace(/HH/g, hours.toString().padStart(2, '0'))
+                .replace(/H/g, hours.toString())
+                .replace(/mm/g, minutes.toString().padStart(2, '0'))
+                .replace(/m/g, minutes.toString());
         }
 
         return formatted;
