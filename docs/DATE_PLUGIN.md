@@ -30,7 +30,8 @@ The Date Plugin accepts the following configuration options:
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `dateFormat` | String | No | 'YYYY-MM-DD' | Expected date format (currently only YYYY-MM-DD is used internally) |
+| `dateFormat` | String | No | 'YYYY-MM-DD' | Expected date format (deprecated, use displayFormat) |
+| `displayFormat` | String | No | null | Custom display format string (e.g., 'MM/DD/YYYY', 'DD-MM-YYYY', 'YYYY.MM.DD', etc.) |
 | `minDate` | String | No | '' | Minimum allowed date (YYYY-MM-DD format) |
 | `maxDate` | String | No | '' | Maximum allowed date (YYYY-MM-DD format) |
 | `includeTime` | Boolean | No | false | Whether to include time picker (uses datetime-local instead of date) |

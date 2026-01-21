@@ -7,7 +7,8 @@ import Plugin from '../plugin-base.js';
 class DatePlugin extends Plugin {
     /**
      * @param {Object} config - Plugin configuration
-     * @param {string} [config.dateFormat='YYYY-MM-DD'] - Expected date format
+     * @param {string} [config.dateFormat='YYYY-MM-DD'] - Expected date format (deprecated, use displayFormat)
+     * @param {string} [config.displayFormat] - Custom display format string (e.g., 'MM/DD/YYYY', 'DD-MM-YYYY', etc.)
      * @param {string} [config.minDate] - Minimum allowed date (YYYY-MM-DD)
      * @param {string} [config.maxDate] - Maximum allowed date (YYYY-MM-DD)
      * @param {boolean} [config.includeTime=false] - Whether to include time picker
@@ -16,6 +17,7 @@ class DatePlugin extends Plugin {
         super(config);
         this.config = {
             dateFormat: config.dateFormat || 'YYYY-MM-DD',
+            displayFormat: config.displayFormat || null, // Custom display format
             minDate: config.minDate || '',
             maxDate: config.maxDate || '',
             includeTime: config.includeTime || false
@@ -162,6 +164,11 @@ class DatePlugin extends Plugin {
      * @returns {string} - Formatted date string
      */
     formatForDisplay(date, includeTime = false) {
+        if (this.config.displayFormat) {
+            // Use custom display format if provided
+            return this.formatWithPattern(date, this.config.displayFormat, includeTime);
+        }
+
         if (includeTime) {
             return date.toLocaleString(undefined, {
                 year: 'numeric',
@@ -177,6 +184,42 @@ class DatePlugin extends Plugin {
                 day: 'numeric'
             });
         }
+    }
+
+    /**
+     * Format a date using a custom pattern
+     * @param {Date} date - The date to format
+     * @param {string} pattern - The format pattern (e.g., 'MM/DD/YYYY', 'DD-MM-YYYY', etc.)
+     * @param {boolean} includeTime - Whether to include time
+     * @returns {string} - Formatted date string
+     */
+    formatWithPattern(date, pattern, includeTime = false) {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // getMonth() returns 0-11
+        const day = date.getDate();
+
+        let hours = 0;
+        let minutes = 0;
+
+        if (includeTime) {
+            hours = date.getHours();
+            minutes = date.getMinutes();
+        }
+
+        // Replace pattern placeholders with actual values
+        let formatted = pattern
+            .replace(/YYYY/g, year.toString())
+            .replace(/YY/g, year.toString().slice(-2))
+            .replace(/MM/g, month.toString().padStart(2, '0'))
+            .replace(/M/g, month.toString())
+            .replace(/DD/g, day.toString().padStart(2, '0'))
+            .replace(/D/g, day.toString());
+
+        if (includeTime) {
+            formatted += ` ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        return formatted;
     }
     
     /**
