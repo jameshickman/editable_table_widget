@@ -113,4 +113,7 @@ Store configuration in the constructor and use it in your plugin methods.
 
 ## Built-in Plugin Examples
 
-Check out the `FilePlugin` implementation in `js/plugins/file-plugin.js` for a complete example of a complex plugin with modal UI and file upload functionality.
+Check out the following plugin implementations:
+
+- `FilePlugin` in `js/plugins/file-plugin.js` - A complex plugin with modal UI and file upload functionality
+- `DatePlugin` in `js/plugins/date-plugin.js` - A simple plugin demonstrating date input with HTML5 date picker

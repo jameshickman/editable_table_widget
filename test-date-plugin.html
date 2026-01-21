@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Table with Date Plugin</title>
+    <script src="./js/ediable_table.js" type="module"></script>
+    <script src="./js/plugins/date-plugin.js" type="module"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/date-plugin.css" />
+</head>
+<body>
+    <h1>Smart Table with Date Plugin Demo</h1>
+    <p>This demo shows how to use the date plugin for selecting dates in Smart Table.</p>
+    
+    <table width="100%" id="smart-table">
+        <thead>
+            <tr>
+                <th data-type="index" data-name="id">ID</th>
+                <th data-type="text" data-name="name">Name</th>
+                <th data-type="date" data-name="birthDate">Birth Date</th>
+                <th data-type="date" data-name="appointment">Appointment (with time)</th>
+                <th data-type="text" data-name="notes">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>John Doe</td>
+                <td>1990-05-15</td>
+                <td>2023-12-25T10:30:00</td>
+                <td>Regular checkup</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Jane Smith</td>
+                <td>1985-11-30</td>
+                <td>2023-12-26T14:00:00</td>
+                <td>Follow-up visit</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="controls">
+        <button id="add-row">Add Row</button>
+        <button id="get-data">Get Table Data</button>
+        <button id="populate">Populate with Sample Data</button>
+        <div class="output"></div>
+    </div>
+
+    <script type="module">
+        import EditableTable from './js/ediable_table.js';
+        import DatePlugin from './js/plugins/date-plugin.js';
+
+        // Create date plugin instances with configuration
+        const datePlugin = new DatePlugin({
+            minDate: '1900-01-01',
+            maxDate: '2030-12-31'
+        });
+
+        const dateTimePlugin = new DatePlugin({
+            minDate: '2023-01-01',
+            maxDate: '2030-12-31',
+            includeTime: true
+        });
+
+        // Get references to control buttons
+        const elAdd = document.getElementById('add-row');
+        const elGetData = document.getElementById('get-data');
+        const elPopulate = document.getElementById('populate');
+
+        // Initialize the table with the date plugins
+        const table = new EditableTable(
+            document.getElementById('smart-table'),
+            (is_new, index, data) => {
+                console.log('Row saved:', { is_new, index, data });
+                document.querySelector('.output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            },
+            (index) => {
+                console.log('Row deleted:', index);
+            },
+            {
+                "fields": {
+                    "birthDate": {
+                        plugin: datePlugin  // Register the date plugin instance
+                    },
+                    "appointment": {
+                        plugin: dateTimePlugin  // Register the datetime plugin instance
+                    }
+                }
+            }
+        );
+
+        // Set edit callbacks to disable/enable control buttons
+        table.set_edit_callbacks(
+            () => {
+                // Disable control buttons when editing starts
+                elAdd.disabled = true;
+                elGetData.disabled = true;
+                elPopulate.disabled = true;
+            },
+            () => {
+                // Enable control buttons when editing ends
+                elAdd.disabled = false;
+                elGetData.disabled = false;
+                elPopulate.disabled = false;
+            }
+        );
+
+        // Add row button
+        document.getElementById('add-row').addEventListener('click', () => {
+            table.new_row();
+        });
+
+        // Get data button
+        document.getElementById('get-data').addEventListener('click', () => {
+            const data = table.get_values();
+            console.log('Table data:', data);
+            document.querySelector('.output').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        });
+
+        // Populate button
+        document.getElementById('populate').addEventListener('click', () => {
+            const sampleData = [
+                {
+                    id: 1,
+                    name: "Alice Johnson",
+                    birthDate: "1992-03-22",
+                    appointment: "2024-01-15T09:00:00",
+                    notes: "New patient"
+                },
+                {
+                    id: 2,
+                    name: "Bob Williams",
+                    birthDate: "1988-07-10",
+                    appointment: "2024-01-16T11:30:00",
+                    notes: "Annual checkup"
+                }
+            ];
+            table.set_rows(sampleData);
+        });
+    </script>
+</body>
+</html>

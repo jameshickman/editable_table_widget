@@ -142,6 +142,12 @@ The File Plugin enables file upload and download functionality. Users can upload
 
 For detailed usage instructions, see the [File Plugin Documentation](docs/FILE_PLUGIN.md).
 
+### Date Plugin
+
+The Date Plugin provides a date input field using the HTML5 date picker. Users can select dates using the native calendar interface, with optional time selection and configurable date ranges.
+
+For detailed usage instructions, see the [Date Plugin Documentation](docs/DATE_PLUGIN.md).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

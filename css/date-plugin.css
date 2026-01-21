@@ -1,0 +1,15 @@
+/* Date Plugin Styles */
+
+.date-plugin-no-date {
+    color: #999;
+    font-style: italic;
+}
+
+.date-plugin-invalid {
+    color: #f44336;
+    font-style: italic;
+}
+
+.date-plugin-value {
+    color: #333;
+}
